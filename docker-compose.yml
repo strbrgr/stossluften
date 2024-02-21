@@ -24,6 +24,9 @@ services:
     container_name: telegraf
     volumes:
       - ${TELEGRAF_CFG_PATH}:/etc/telegraf/telegraf.conf:rw
+      - /dev:/dev
+    devices:
+    - "/dev/i2c-1/:dev/i2c-1" # Make I2C available to read out data
     env_file:
       - .env
     depends_on:
