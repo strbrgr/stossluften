@@ -1,39 +1,33 @@
 version: '3.6'
 services:
+  influxdb:
+    image: arm64v8/influxdb:2.7
+    volumes:
+      - influxdb_data:/var/lib/influxdb2:rw
+    env_file:
+      - .env
+    entrypoint: ["./entrypoint.sh"]
+    restart: on-failure:10
+    container_name: influxdb
+    ports:
+      - ${DOCKER_INFLUXDB_INIT_PORT}:8086
+    # environment:
+    #   - DOCKER_INFLUXDB_INIT_MODE=setup
+    #   - DOCKER_INFLUXDB_INIT_USERNAME=myadmin
+    #   - DOCKER_INFLUXDB_INIT_PASSWORD=mypassword
+    #   - DOCKER_INFLUXDB_INIT_ORG=myorg
+    #   - DOCKER_INFLUXDB_INIT_BUCKET=mybucket
+    #   - DOCKER_INFLUXDB_INIT_RETENTION=30d
+
   telegraf:
     image: telegraf-custom
     container_name: telegraf
-    restart: always
     volumes:
-    - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
-    - /dev:/dev
-    devices:
-    - "/dev/i2c-1/:dev/i2c-1" # Make I2C available to read out data
+      - ${TELEGRAF_CFG_PATH}:/etc/telegraf/telegraf.conf:rw
+    env_file:
+      - .env
     depends_on:
       - influxdb
-    links:
-      - influxdb
-    ports:
-    - '8125:8125'
-
-  influxdb:
-    image: arm64v8/influxdb:latest
-    container_name: influxdb
-    restart: always
-    ports:
-      - '8086:8086'
-    environment:
-      - DOCKER_INFLUXDB_INIT_MODE=setup
-      - DOCKER_INFLUXDB_INIT_USERNAME=jo_admin
-      - DOCKER_INFLUXDB_INIT_PASSWORD=password
-      - DOCKER_INFLUXDB_INIT_ORG=jo_org
-      - DOCKER_INFLUXDB_INIT_BUCKET=co2
-      - DOCKER_INFLUXDB_INIT_RETENTION=30d
-    volumes:
-      - influxdb_data:/var/lib/influxdb
 
 volumes:
   influxdb_data: {}
-
-
-
