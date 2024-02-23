@@ -20,6 +20,12 @@ RUN /venv/bin/pip install scd30_i2c
 # Copy your Python script into the container
 COPY scd30.py scd30.py
 
+# Copy Telegraf configuration into the container
+COPY telegraf.conf /etc/telegraf/telegraf.conf
+
 # Set the entrypoint to use the virtual environment
-ENTRYPOINT ["/venv/bin/python", "/scd30.py"]
+# ENTRYPOINT ["/venv/bin/python", "/scd30.py"]
+
+# Set the entrypoint to use Telegraf with the provided configuration
+ENTRYPOINT ["/usr/bin/telegraf", "--config", "/etc/telegraf/telegraf.conf"]
 
