@@ -10,14 +10,7 @@ services:
     restart: on-failure:10
     container_name: influxdb
     ports:
-      - ${DOCKER_INFLUXDB_INIT_PORT}:8086
-    # environment:
-    #   - DOCKER_INFLUXDB_INIT_MODE=setup
-    #   - DOCKER_INFLUXDB_INIT_USERNAME=myadmin
-    #   - DOCKER_INFLUXDB_INIT_PASSWORD=mypassword
-    #   - DOCKER_INFLUXDB_INIT_ORG=myorg
-    #   - DOCKER_INFLUXDB_INIT_BUCKET=mybucket
-    #   - DOCKER_INFLUXDB_INIT_RETENTION=30d
+      - ${INFLUX_PORT}:8086
 
   telegraf:
     image: telegraf-custom
