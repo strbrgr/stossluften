@@ -15,5 +15,5 @@ export INFLUX_PORT=$INFLUX_PORT
 export INFLUX_HOST=$INFLUX_HOST
 
 # Conducts initial InfluxDB using the CLI
-influx setup --skip-verify --bucket ${INFLUX_BUCKET} --retention ${INFLUX_RETENTION} --token ${INFLUX_TOKEN} --org ${INFLUX_ORG} --username ${INFLUX_USERNAME} --password ${INFLUX_PASSWORD} --host http://${INFLUX_HOST} --force
+influx setup --skip-verify --bucket${INFLUX_BUCKET} --retention ${INFLUX_RETENTION} --token ${INFLUX_TOKEN} --org ${INFLUX_ORG} --username ${INFLUX_USERNAME} --password ${INFLUX_PASSWORD} --host http://${INFLUX_HOST} --force
 
