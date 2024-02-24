@@ -1,45 +1,69 @@
 from scd30_i2c import SCD30
 import time
-# import influxdb_client, os, time
-# from influxdb_client import InfluxDBClient, Point, WritePrecision
-# from influxdb_client.client.write_api import SYNCHRONOUS
-#
-# token = os.environ.get("INFLUXDB_TOKEN")
-# org = "jo_enterprise"
-# url = "http://localhost:8086"
-#
-# write_client = influxdb_client.InfluxDBClient(url=url, token=token, org=org)
-#
-# bucket = "co2_bucket"
-#
-# write_api = client.write_api(write_options=SYNCHRONOUS)
-#
-# for value in range(5):
-#     point = Point("measurement1").tag("tagname1", "tagvalue1").field("field1", value)
-#     write_api.write(bucket=bucket, org="jo_enterprise)", record=point)
-#     time.sleep(1)  # separate points by 1 second
+import influxdb_client
+from influxdb_client.client.write_api import SYNCHRONOUS
+
 
 scd30 = SCD30()
-
 scd30.set_measurement_interval(2)
 scd30.start_periodic_measurement()
 
-time.sleep(2)
 
-while True:
+# INfluxDB vars
+URL = "http://192.168.0.21:8086"
+TOKEN = "mytoken"
+ORG = "jorg"
+BUCKET = "office"
+
+
+def read_sensor_data():
     if scd30.get_data_ready():
         m = scd30.read_measurement()
         if m is not None:
             co2 = m[0]
             temp = m[1]
             rh = m[2]
-            timestamp = int(time.time() * 1000000000)  # Convert to nanoseconds
-            line_protocol = (
-                f"co2,location=office value={co2}\n"
-                f"temperature,location=office value={temp}\n"
-                f"humidity,location=office value={rh}\n"
-            )
-            print(line_protocol, end="")
-        # time.sleep(2)
+
+            return (co2, temp, rh)
     else:
         time.sleep(0.2)
+
+
+def write_to_influxdb(data):
+    # Define client
+    client = influxdb_client.InfluxDBClient(url=URL, token=TOKEN, org=ORG)
+    write_api = client.write_api(write_options=SYNCHRONOUS)
+
+    co2, temp, rh = data
+
+    records = [
+        {
+            "measurement": "co2",
+            "tags": {"location": "office"},
+            "fields": {"value": co2},
+        },
+        {
+            "measurement": "temperature",
+            "tags": {"location": "office"},
+            "fields": {"value": temp},
+        },
+        {
+            "measurement": "humidity",
+            "tags": {"location": "office"},
+            "fields": {"value": rh},
+        },
+    ]
+
+    write_api.write(bucket=BUCKET, org=ORG, record=records)
+
+
+def main():
+    time.sleep(2)
+    while True:
+        sensor_data = read_sensor_data()
+        write_to_influxdb(sensor_data)
+        time.sleep(2)
+
+
+if __name__ == "__main__":
+    main()
