@@ -8,8 +8,6 @@ scd30 = SCD30()
 scd30.set_measurement_interval(2)
 scd30.start_periodic_measurement()
 
-
-# INfluxDB vars
 URL = "http://192.168.0.21:8086"
 TOKEN = "mytoken"
 ORG = "jorg"
@@ -30,7 +28,6 @@ def read_sensor_data():
 
 
 def write_to_influxdb(data):
-    # Define client
     client = influxdb_client.InfluxDBClient(url=URL, token=TOKEN, org=ORG)
     write_api = client.write_api(write_options=SYNCHRONOUS)
 
@@ -58,6 +55,7 @@ def write_to_influxdb(data):
 
 
 def main():
+    # Give sensor enough time to power up
     time.sleep(2)
     while True:
         sensor_data = read_sensor_data()
