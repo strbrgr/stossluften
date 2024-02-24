@@ -32,4 +32,21 @@ I defined two services within my Docker compose file. One for InfluxDB, a soluti
 
 #### Using Dockerfile to build a custom Image
 
-To include a virtual python environment including the scd30 library, I built a custom [Docker Image](Link) via  `docker build -t telegraf-custom .`. This custom image has to be specified within the docker compose file. Make sure to rebuild the image every time you make changes to the config of your Dockerfile.
+To include a virtual python environment including the scd30 library, I built a custom [Docker Image](Link) via  `docker build -t telegraf- .`. This custom image has to be specified within the docker compose file. Make sure to rebuild the image every time you make changes to the config of your Dockerfile.
+
+#### Uninstalling InfluxDB
+
+At some point along the configuration I ran into issues with InfluxDB. There seems to be no good way of editing / deleting the default user so I needed to perform a clean install. This was not an issue as my DB was still empty. I used the following lines to delete the InfluxDB installation from my Raspberry Pi:
+
+```sh
+sudo service influxdb stop
+sudo apt remove influxdb
+sudo apt remove influxdb-client
+sudo apt remove influxdb2
+sudo apt autoclean && sudo apt autoremove
+
+sudo rm -rf /var/lib/influxdb/
+sudo rm -rf /var/log/influxdb/
+sudo rm -rf /etc/influxdb/
+sudo rm -rf ~/.influxdbv2/configs
+```
