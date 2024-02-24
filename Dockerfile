@@ -1,4 +1,5 @@
-FROM telegraf:latest
+# Use Python base image
+FROM python:3.9-slim
 
 # Install any dependencies required by scd30_i2c and install pip
 RUN apt-get update && apt-get install -y \
@@ -17,15 +18,12 @@ RUN /venv/bin/pip install scd30_i2c
 # Install influxdb-client
 RUN /venv/bin/pip install influxdb-client
 
-# Copy your Python script into the container
-COPY scd30.py scd30.py
+# Create a directory for your application
+WORKDIR /app
 
-# Copy Telegraf configuration into the container
-COPY ./telegraf/telegraf.conf /etc/telegraf/telegraf.conf
+# Copy your Python script into the container
+COPY scd30.py .
 
 # Set the entrypoint to use the virtual environment
-ENTRYPOINT ["/venv/bin/python", "/scd30.py"]
-
-# Set the entrypoint to use Telegraf with the provided configuration
-# ENTRYPOINT ["/usr/bin/telegraf", "--config", "/etc/telegraf/telegraf.conf"]
+ENTRYPOINT ["/venv/bin/python", "scd30.py"]
 
