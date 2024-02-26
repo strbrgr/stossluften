@@ -1,7 +1,7 @@
 version: '3'
 services:
   influxdb:
-    image: arm64v8/influxdb:2.6
+    image: arm64v8/influxdb:2.7
     volumes:
       - influxdb-storage:/var/lib/influxdb2:rw
     env_file:
@@ -11,15 +11,21 @@ services:
     ports:
       - ${DOCKER_INFLUXDB_INIT_PORT}:8086
 
-  scd30:
-    build: .
+  telegraf:
+    build:
+      context: .
+      dockerfile: Dockerfile
     volumes:
-      - ./scd30.py:/app/scd30.py
+      - ${TELEGRAF_CFG_PATH}:/etc/telegraf/telegraf.conf:rw
+      - ./scd30.py:/app/scd30.py:ro
       - /dev:/dev
     devices:
       - /dev/i2c-1:/dev/i2c-1 # Make I2C available to read out data
+    env_file:
+      - .env
     depends_on:
       - influxdb
+    command: ["python3", "-u", "scd30.py"]
 
 volumes:
-  influxdb-storage
+influxdb-storage:
