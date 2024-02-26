@@ -1,39 +1,25 @@
 version: '3'
 services:
+  influxdb:
+    image: arm64v8/influxdb:2.6
+    volumes:
+      - influxdb-storage:/var/lib/influxdb2:rw
+    env_file:
+      - .env
+    entrypoint: ["./entrypoint.sh"]
+    restart: on-failure:10
+    ports:
+      - ${DOCKER_INFLUXDB_INIT_PORT}:8086
+
   scd30:
     build: .
     volumes:
       - ./scd30.py:/app/scd30.py
-    # environment:
-    #   - INFLUXDB_HOST=influxdb
-    #   - INFLUXDB_PORT=8086
-    #   - INFLUXDB_DATABASE=my_database
-    #   - INFLUXDB_USERNAME=my_user
-    #   - INFLUXDB_PASSWORD=my_password
-    depends_on:
-      - influxdb
-
-  influxdb:
-    image: arm64v8/influxdb:2.7
-    env_file:
-      - influxv2.env
-    volumes:
-      # Mount for influxdb data directory and configuration
-      - influxdbv2:/var/lib/influxdb2:rw
       - /dev:/dev
     devices:
       - /dev/i2c-1:/dev/i2c-1 # Make I2C available to read out data
-    restart: on-failure:10
-    ports:
-      - 8086:8086
-    environment:
-      - DOCKER_INFLUXDB_INIT_MODE=${DOCKER_INFLUXDB_INIT_MODE}
-      - DOCKER_INFLUXDB_INIT_USERNAME=${DOCKER_INFLUXDB_INIT_USERNAME}
-      - DOCKER_INFLUXDB_INIT_PASSWORD=${DOCKER_INFLUXDB_INIT_PASSWORD}
-      - DOCKER_INFLUXDB_INIT_ORG=${DOCKER_INFLUXDB_INIT_ORG}
-      - DOCKER_INFLUXDB_INIT_BUCKET=${DOCKER_INFLUXDB_INIT_BUCKET}
-      - DOCKER_INFLUXDB_INIT_RETENTION=30d
-      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN}
+    depends_on:
+      - influxdb
 
 volumes:
-  influxdbv2:
+  influxdb-storage

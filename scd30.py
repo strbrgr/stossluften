@@ -9,7 +9,7 @@ scd30.set_measurement_interval(2)
 scd30.start_periodic_measurement()
 
 URL = "http://192.168.0.21:8086"
-TOKEN = "mytoken"
+TOKEN = "admintoken"
 ORG = "jorg"
 BUCKET = "office"
 
