@@ -26,6 +26,6 @@ services:
     depends_on:
       - influxdb
     command: ["/venv/bin/python3", "-u", "scd30.py"]
-    
+
 volumes:
-influxdb-storage:
+  influxdb-storage:
