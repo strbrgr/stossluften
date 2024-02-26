@@ -1,7 +1,5 @@
 from scd30_i2c import SCD30
 import time
-import influxdb_client
-from influxdb_client.client.write_api import SYNCHRONOUS
 
 
 scd30 = SCD30()
@@ -27,31 +25,15 @@ def read_sensor_data():
         time.sleep(0.2)
 
 
-def write_to_influxdb(data):
-    client = influxdb_client.InfluxDBClient(url=URL, token=TOKEN, org=ORG)
-    write_api = client.write_api(write_options=SYNCHRONOUS)
-
+def write_to_telegraf(data):
     co2, temp, rh = data
 
-    records = [
-        {
-            "measurement": "co2",
-            "tags": {"location": "office"},
-            "fields": {"value": co2},
-        },
-        {
-            "measurement": "temperature",
-            "tags": {"location": "office"},
-            "fields": {"value": temp},
-        },
-        {
-            "measurement": "humidity",
-            "tags": {"location": "office"},
-            "fields": {"value": rh},
-        },
-    ]
-
-    write_api.write(bucket=BUCKET, org=ORG, record=records)
+    line_protocol = (
+        f"co2,location=office value={co2}\n"
+        f"temperature,location=office value={temp}\n"
+        f"humidity,location=office value={rh}\n"
+    )
+    print(line_protocol)
 
 
 def main():
@@ -59,7 +41,7 @@ def main():
     time.sleep(2)
     while True:
         sensor_data = read_sensor_data()
-        write_to_influxdb(sensor_data)
+        write_to_telegraf(sensor_data)
         time.sleep(2)
 
 
