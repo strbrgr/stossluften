@@ -1,5 +1,6 @@
 from scd30_i2c import SCD30
 import time
+import sys
 # import influxdb_client
 # from influxdb_client.client.write_api import SYNCHRONOUS
 
@@ -59,7 +60,7 @@ def write_to_telegraf(data):
         f"temperature,location=office value={temp}\n"
         f"humidity,location=office value={rh}\n"
     )
-    print(line_protocol)
+    sys.stdout.write(line_protocol)
 
 
 def main():
