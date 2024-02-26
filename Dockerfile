@@ -27,4 +27,3 @@ COPY ./telegraf/telegraf.conf /etc/telegraf/telegraf.conf
 
 # Set the entrypoint to use Telegraf with the provided configuration
 ENTRYPOINT ["/usr/bin/telegraf", "--config", "/etc/telegraf/telegraf.conf"]
-
