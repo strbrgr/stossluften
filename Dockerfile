@@ -22,8 +22,12 @@ RUN /venv/bin/python -m pip install --upgrade pip
 # Install scd30_i2c library within the virtual environment
 RUN /venv/bin/pip install scd30_i2c
 
+# Check if telegraf binary is present
+RUN which telegraf
+
 # Copy Telegraf configuration into the container
 COPY ./telegraf/telegraf.conf /etc/telegraf/telegraf.conf
 
 # Set the entrypoint to use Telegraf with the provided configuration
 ENTRYPOINT ["/usr/bin/telegraf", "--config", "/etc/telegraf/telegraf.conf"]
+
