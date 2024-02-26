@@ -11,13 +11,15 @@ services:
     ports:
       - ${DOCKER_INFLUXDB_INIT_PORT}:8086
 
-  scd30:
-    build: .
+  telegraf:
+    build: ./telegraf
     volumes:
-      - ./scd30.py:/app/scd30.py
+      - ${TELEGRAF_CFG_PATH}:/etc/telegraf/telegraf.conf:rw
       - /dev:/dev
     devices:
       - /dev/i2c-1:/dev/i2c-1 # Make I2C available to read out data
+    env_file:
+      - .env
     depends_on:
       - influxdb
 
