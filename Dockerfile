@@ -1,4 +1,5 @@
-FROM arm64v8/telegraf:latest
+# Use Python base image
+FROM python:3.9-slim
 
 # Install any dependencies required by scd30_i2c and install pip
 RUN apt-get update && apt-get install -y \
@@ -12,12 +13,17 @@ RUN python3 -m venv /venv
 RUN /venv/bin/python -m pip install --upgrade pip
 
 # Install scd30_i2c library within the virtual environment
-RUN /venv/bin/pip install scd30_i2c influxdb_client
+RUN /venv/bin/pip install scd30_i2c
+
+# Install influxdb-client
+RUN /venv/bin/pip install influxdb-client
+
+# Create a directory for your application
+WORKDIR /app
 
 # Copy your Python script into the container
-COPY scd30/scd30.py /app/scd30.py
+COPY scd30.py .
 
 # Set the entrypoint to use the virtual environment
-# ENTRYPOINT ["/venv/bin/python", "/app/scd30.py"]
-ENTRYPOINT ["/usr/bin/telegraf"]
+ENTRYPOINT ["/venv/bin/python", "scd30.py"]
 
