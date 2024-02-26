@@ -1,6 +1,6 @@
 from scd30_i2c import SCD30
 import time
-import influxdb_client
+from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 
@@ -29,30 +29,38 @@ def read_sensor_data():
 
 
 def write_to_influxdb(data):
-    client = influxdb_client.InfluxDBClient(url=URL, token=TOKEN, org=ORG)
+    client = InfluxDBClient(url=URL, token=TOKEN, org=ORG)
     write_api = client.write_api(write_options=SYNCHRONOUS)
 
     co2, temp, rh = data
 
-    records = [
-        {
-            "measurement": "co2",
-            "tags": {"location": "office"},
-            "fields": {"value": co2},
-        },
-        {
-            "measurement": "temperature",
-            "tags": {"location": "office"},
-            "fields": {"value": temp},
-        },
-        {
-            "measurement": "humidity",
-            "tags": {"location": "office"},
-            "fields": {"value": rh},
-        },
-    ]
+    p = (
+        Point("stossluften")
+        .tag("location", "office")
+        .field("co2", co2)
+        .field("temperature", temp)
+        .field("humidity", rh)
+    )
 
-    write_api.write(bucket=BUCKET, org=ORG, record=records)
+    # records = [
+    #     {
+    #         "measurement": "co2",
+    #         "tags": {"location": "office"},
+    #         "fields": {"value": co2},
+    #     },
+    #     {
+    #         "measurement": "temperature",
+    #         "tags": {"location": "office"},
+    #         "fields": {"value": temp},
+    #     },
+    #     {
+    #         "measurement": "humidity",
+    #         "tags": {"location": "office"},
+    #         "fields": {"value": rh},
+    #     },
+    # ]
+
+    write_api.write(bucket=BUCKET, org=ORG, record=p)
 
 
 def main():
