@@ -43,24 +43,6 @@ def write_to_influxdb(data):
         .field("humidity", rh)  # %rh
     )
 
-    # records = [
-    #     {
-    #         "measurement": "co2",
-    #         "tags": {"location": "office"},
-    #         "fields": {"value": co2},
-    #     },
-    #     {
-    #         "measurement": "temperature",
-    #         "tags": {"location": "office"},
-    #         "fields": {"value": temp},
-    #     },
-    #     {
-    #         "measurement": "humidity",
-    #         "tags": {"location": "office"},
-    #         "fields": {"value": rh},
-    #     },
-    # ]
-
     write_api.write(bucket=BUCKET, org=ORG, record=p)
 
 
