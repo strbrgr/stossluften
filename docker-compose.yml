@@ -1,7 +1,7 @@
 version: '3'
 services:
   influxdb:
-    image: arm64v8/influxdb:2.6
+    image: arm64v8/influxdb:2.7
     volumes:
       - influxdb-storage:/var/lib/influxdb2:rw
     env_file:
