@@ -25,6 +25,7 @@ def read_sensor_data():
             return (co2, temp, rh)
     else:
         time.sleep(0.2)
+
         return None, None, None
 
 
@@ -35,11 +36,11 @@ def write_to_influxdb(data):
     co2, temp, rh = data
 
     p = (
-        Point("stossluften")
+        Point("environment")
         .tag("location", "office")
-        .field("co2", co2)
-        .field("temperature", temp)
-        .field("humidity", rh)
+        .field("co2", co2)  # ppm
+        .field("temperature", temp)  # celsius
+        .field("humidity", rh)  # %rh
     )
 
     # records = [
