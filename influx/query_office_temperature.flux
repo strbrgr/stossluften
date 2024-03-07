@@ -1,3 +1,5 @@
+import "date"
+
 from(bucket: "office")
   |> range(start: -24h)
   |> filter(fn: (r) => r._measurement == "environment")
