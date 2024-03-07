@@ -54,6 +54,15 @@ sudo rm -rf /etc/influxdb/
 sudo rm -rf ~/.influxdbv2/configs
 ```
 
+#### How to create a InfluxDB config
+```sh
+influx config create --config-name CONFIG_NAME \
+  --host-url http://localhost:8086 \
+  --org ORG \
+  --token API_TOKEN \
+  --active
+```
+
 #### Remote connection into your Raspberry Pi
 
 We can either connect to our Raspberry Pi via TigerVNC or via SSH. To do that we have to enable VNC and SSH via the configuration on our Pi. TigerVNC has some issues with Retina Displays and their 2x pixel density.
