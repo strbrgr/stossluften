@@ -80,6 +80,11 @@ crontab -e
 0 22 * * * /influx_csv/run_queries.sh
 ```
 
+#### How to copy a local folder into my docker container
+```sh
+docker cp /home/jo/Desktop/stossluften/influx_csv my_container_id:/app/influx_csv
+```
+
 #### Remote connection into your Pi
 
 We can either connect to our Pi via TigerVNC or via SSH. To do that we have to enable VNC and SSH via the configuration on our Pi. TigerVNC has some issues with Retina Displays and their 2x pixel density.
