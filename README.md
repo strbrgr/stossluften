@@ -7,6 +7,9 @@
     - [Walkthrough](#walkthrough)
       - [Reading out SCD30 Sensor Data](#reading-out-scd30-sensor-data)
       - [Using Docker Compose to run a multi-container application](#using-docker-compose-to-run-a-multi-container-application)
+      - [Using Dockerfile to build a custom Image](#using-dockerfile-to-build-a-custom-image)
+      - [Uninstalling InfluxDB](#uninstalling-influxdb)
+      - [Remote connection into your Raspberry Pi](#remote-connection-into-your-raspberry-pi)
 <!--toc:end-->
 
 ## Documentation
@@ -49,4 +52,18 @@ sudo rm -rf /var/lib/influxdb/
 sudo rm -rf /var/log/influxdb/
 sudo rm -rf /etc/influxdb/
 sudo rm -rf ~/.influxdbv2/configs
+```
+
+#### Remote connection into your Raspberry Pi
+
+We can either connect to our Raspberry Pi via TigerVNC or via SSH. To do that we have to enable VNC and SSH via the configuration on our Pi. TigerVNC has some issues with Retina Displays and their 2x pixel density.
+
+##### To securely connect to your Pi via SSH:
+```sh
+ssh <username>@<IP>
+```
+
+##### How to copy a file from your Pi to your local environment
+```sh
+scp username@ip:/path/on/pi/query.csv ~/path/on/local/machine
 ```
