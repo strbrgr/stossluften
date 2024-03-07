@@ -77,7 +77,7 @@ crontab -e
 ```
 
 ```sh
-0 22 * * * /influx_csv/run_queries.sh
+crontab -l | { cat; echo "0 22 * * * /run_queries.sh"; } | crontab -
 ```
 
 #### How to copy a local folder into my docker container
