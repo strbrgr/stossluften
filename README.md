@@ -55,6 +55,8 @@ sudo rm -rf ~/.influxdbv2/configs
 ```
 
 #### How to create a InfluxDB config
+Once you figure out the docker container id that has your influxdb running via `docker ps`, you should be able to exec into it via `docker exec -it <id> /bin/bash` to the create an active config in case you haven't done this:
+
 ```sh
 influx config create --config-name CONFIG_NAME \
   --host-url http://localhost:8086 \
@@ -63,9 +65,24 @@ influx config create --config-name CONFIG_NAME \
   --active
 ```
 
-#### Remote connection into your Raspberry Pi
+#### Run query to get data into CSV via CLI
+I am using `influx query` to query my bucket via a three flux files. These three files are executed via shell script and a cron job every day at 10pm:
 
-We can either connect to our Raspberry Pi via TigerVNC or via SSH. To do that we have to enable VNC and SSH via the configuration on our Pi. TigerVNC has some issues with Retina Displays and their 2x pixel density.
+```sh
+chmod +x run_queries.sh
+```
+
+```sh
+crontab -e
+```
+
+```sh
+0 22 * * * /influx_csv/run_queries.sh
+```
+
+#### Remote connection into your Pi
+
+We can either connect to our Pi via TigerVNC or via SSH. To do that we have to enable VNC and SSH via the configuration on our Pi. TigerVNC has some issues with Retina Displays and their 2x pixel density.
 
 ##### To securely connect to your Pi via SSH:
 ```sh
