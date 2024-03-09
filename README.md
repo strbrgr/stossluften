@@ -5,46 +5,46 @@
   - [Documentation](#documentation)
     - [Stack](#stack)
     - [Walkthrough](#walkthrough)
-      - [Reading out SCD30 Sensor Data](#reading-out-scd30-sensor-data)
-      - [Using Docker Compose to run a multi-container application](#using-docker-compose-to-run-a-multi-container-application)
-      - [Using Dockerfile to build a custom Image](#using-dockerfile-to-build-a-custom-image)
-      - [Uninstalling InfluxDB](#uninstalling-influxdb)
+  - [Setting up a multi container environment](#setting-up-a-multi-container-environment)
+    - [Docker Compose](#docker-compose)
+      - [Service 1: Creating a InfluxDB instance](#service-1-creating-a-influxdb-instance)
+        - [Uninstalling InfluxDB](#uninstalling-influxdb)
+      - [Service 2: Reading out SCD30 Sensor Data](#service-2-reading-out-scd30-sensor-data)
       - [How to create a InfluxDB config](#how-to-create-a-influxdb-config)
-      - [Run query to get data into CSV via CLI](#run-query-to-get-data-into-csv-via-cli)
-      - [How to copy a local folder into a Docker container](#how-to-copy-a-local-folder-into-a-docker-container)
-      - [Remote connection into your Pi](#remote-connection-into-your-pi)
-        - [To securely connect to your Pi via SSH:](#to-securely-connect-to-your-pi-via-ssh)
+    - [CRON jobs to write to CSV on a daily basis](#cron-jobs-to-write-to-csv-on-a-daily-basis)
+    - [Some neat things learned while working through this](#some-neat-things-learned-while-working-through-this)
+        - [How to copy a local folder into a Docker container](#how-to-copy-a-local-folder-into-a-docker-container)
+        - [Remote connection into your Pi](#remote-connection-into-your-pi)
+        - [To securely connect to your Pi via SSH](#to-securely-connect-to-your-pi-via-ssh)
         - [How to copy a file from your Pi to your local environment](#how-to-copy-a-file-from-your-pi-to-your-local-environment)
+        - [How to remove all files in a folder via your CLI](#how-to-remove-all-files-in-a-folder-via-your-cli)
+        - [How to copy from within a Docker container to your Pi](#how-to-copy-from-within-a-docker-container-to-your-pi)
+        - [Copy from Pi Desktop to local machine](#copy-from-pi-desktop-to-local-machine)
 <!--toc:end-->
 
 ## Documentation
 
 ### Stack
 
+- Raspberry Pi5
 - Docker Compose
 - InfluxDB
-<!-- - Telegraf -->
-- Python
-- Raspberry Pi5
 - Sensirion SCD30
+- Python
+- CRON Jobs
 
 ### Walkthrough
 
-#### Reading out SCD30 Sensor Data
+## Setting up a multi container environment
 
-We use the [scd30_i2c](https://pypi.org/project/scd30-i2c/) library originally developed for a Raspberry Pi 4.
+### Docker Compose
+We use Docker Compose to create a multi-container environment that runs one service for our timeseries database and one related to reading out sensor data. The decision for Docker Compose was made due to the Sensors need for a virtual python environment. The Docker Compose setup itself is relatively easy, but we need to make sure to enable I2C in our SCD30 container. See the `.yml` config [here](https://github.com/strbrgr/stossluften/blob/main/docker-compose.yml). We run it detached via `docker-compose up -d` and want to make sure to not run `docker compose down` without a reason. This will stop and remove running containers.
 
-#### Using Docker Compose to run a multi-container application
+#### Service 1: Creating a InfluxDB instance
 
-We define two services within my Docker compose file. One for InfluxDB, a solution to record timeseries data, and one for everything related to the CO2 sensor. I run it via `docker-compose up -d`.
+##### Uninstalling InfluxDB
 
-#### Using Dockerfile to build a custom Image
-
-To include a virtual python environment including the scd30 library, we can build a custom [Docker Image](Link) via `docker build -t telegraf- .`. This custom image has to be specified within the Docker compose file. Make sure to rebuild the image every time you make changes to the config of your Dockerfile.
-
-#### Uninstalling InfluxDB
-
-At some point along the configuration we could run into issues with InfluxDB. There seems to be no good way of editing / deleting the default user so we need to perform a clean install. This is not an issue as long as the database is still empty:
+At some point along the configuration we could run into issues with our database. There seems to be no good way of editing / deleting the default user so we need to perform a clean install. This is not an issue as long as the database is still empty:
 
 ```sh
 sudo service influxdb stop
@@ -59,8 +59,13 @@ sudo rm -rf /etc/influxdb/
 sudo rm -rf ~/.influxdbv2/configs
 ```
 
+#### Service 2: Reading out SCD30 Sensor Data
+
+We use the [scd30_i2c](https://pypi.org/project/scd30-i2c/) library originally developed for a Raspberry Pi 4. To actually read out data from the sensor we use Influx' [Python Client](https://docs.influxdata.com/influxdb/cloud/api-guide/client-libraries/python/) and make some minor adjustments to it.
+
 #### How to create a InfluxDB config
-Once you figure out the docker container id that runs your database via `docker ps`, you should be able to exec into it via `docker exec -it <id> /bin/bash`. In there you create an active config in case you haven't done this:
+
+Once we figure out the container id that runs our database via `docker ps`, we are able to exec into it via `docker exec -it <id> /bin/bash`. In there we create an active config in case it hasn't been done:
 
 ```sh
 influx config create --config-name CONFIG_NAME \
@@ -70,38 +75,40 @@ influx config create --config-name CONFIG_NAME \
   --active
 ```
 
-#### Run query to get data into CSV via CLI
-To query your bucket we can use `influx query` via a three .flux files. These three files are executed through a shell script triggered by a cron job every day at 10pm:
+### CRON jobs to write to CSV on a daily basis
+
+We wouldn't be Software Engineers without automating things. To write environment records to a CSV file on a daily basis we can run a CRON job on our Pi. As InfluxDB is running in its own container we need to create a [custom script](https://github.com/strbrgr/stossluften/blob/main/influx_csv/run_queries.sh) that first exec's into the Docker container where it will then run three flux files which will write the stdout output to a CSV file. Make sure that the `.sh` file is executable via `chmod +x run_queries.sh`. By default your Pi should come shipped with CRON. If that is the case we can add a new job via `crontab -e` where we add an entry specifying how often to run this script: `0 0 * * * /path/run_queries.sh` (This will run at hour and minute 0). If we run into an error about no editor being available we can adjust and try this:
 
 ```sh
-chmod +x run_queries.sh
+crontab -l | { cat; echo "0 0 * * * path/run_queries.sh"; } | crontab -
 ```
 
-If this command does not work due to no editor like vi being available then try the other one below
-```sh
-crontab -e
-```
+### Some neat things learned while working through this
 
-This will work even if it echoes an error (you can confirm by `crontab -l`).
-```sh
-crontab -l | { cat; echo "0 22 * * * /run_queries.sh"; } | crontab -
-```
+##### How to copy a local folder into a Docker container
 
-#### How to copy a local folder into a Docker container
-```sh
-docker cp /home/jo/Desktop/stossluften/influx_csv my_container_id:/app/influx_csv
-```
+`docker cp /path/ <container_id>:/path`
 
-#### Remote connection into your Pi
+##### Remote connection into your Pi
 
-We can either connect to our Pi via TigerVNC or via SSH. To do that we have to enable VNC and SSH via the configuration on our Pi. TigerVNC has some issues with Retina Displays and their 2x pixel density.
+We can either connect to our Pi via TigerVNC or via SSH. To do that we have to enable VNC and SSH via the configuration on our Pi. TigerVNC has some issues with Retina Displays and their 2x pixel density so we suggest to use the CLI when possible.
 
-##### To securely connect to your Pi via SSH:
-```sh
-ssh <username>@<IP>
-```
+##### To securely connect to your Pi via SSH
+
+`ssh user@ip`
 
 ##### How to copy a file from your Pi to your local environment
-```sh
-scp username@ip:/path/on/pi/query.csv ~/path/on/local/machine
-```
+
+`scp username@ip:/path/ ~/path/`
+
+##### How to remove all files in a folder via your CLI
+
+`rm -r /dir/*`
+
+##### How to copy from within a Docker container to your Pi
+
+`docker cp <container_id>:/path/ ~/path/`
+
+##### Copy from Pi Desktop to local machine
+
+`scp user@ip:/path ~/path`
