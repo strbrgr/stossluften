@@ -20,6 +20,7 @@ services:
       - /dev/i2c-1:/dev/i2c-1 # Make I2C available to read out data
     depends_on:
       - influxdb
+    restart: on-failure:10
 
 volumes:
   influxdb-storage:
