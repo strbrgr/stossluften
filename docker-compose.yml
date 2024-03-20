@@ -10,11 +10,14 @@ services:
     restart: on-failure:10
     ports:
       - ${DOCKER_INFLUXDB_INIT_PORT}:8086
+    volumes:
+      - ./db:/home/db:rw
 
   scd30:
-    build: .
+    build:
+      context: ./sensor
     volumes:
-      - ./scd30.py:/app/scd30.py
+      - ./sensor/scd30.py:/app/scd30.py
       - /dev:/dev
     devices:
       - /dev/i2c-1:/dev/i2c-1 # Make I2C available to read out data
